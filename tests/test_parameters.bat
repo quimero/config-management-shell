@@ -1,7 +1,7 @@
 @echo off
 pushd "%~dp0.."
 
-call run.bat --vfs nonexistent_vfs --script tests\start_ok.txt
+call run.bat --vfs tests\vfs\minimal --script tests\start_ok.txt
 
 if errorlevel 1 (
     echo TEST FAILED

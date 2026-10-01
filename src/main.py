@@ -1,6 +1,7 @@
-
 import argparse
 from pathlib import Path
+from src.vfs import load_vfs
+
 
 VFS_NAME = "my_vfs"
 
@@ -83,6 +84,23 @@ def main():
     print(f"VFS: {args.vfs or '(не указан)'}")
     print(f"Скрипт: {args.script or '(не указан)'}")
 
+    if args.vfs is not None:
+        try:
+            vfs = load_vfs(args.vfs)
+        except (OSError, ValueError) as error:
+            print(f"Ошибка загрузки VFS: {error}")
+            return 1
+
+        print("VFS успешно загружена")
+    else:
+        vfs = {
+            "type": "dir",
+            "owner": "root",
+            "children": {}
+        }
+        print("Используется пустая VFS")
+
+    print(f"Элементов в корне VFS: {len(vfs['children'])}")
 
     if args.script is not None:
         if not Path(args.script).is_file():
