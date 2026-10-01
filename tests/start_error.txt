@@ -1,0 +1,4 @@
+ls
+unknown_command
+cd documents
+exit
