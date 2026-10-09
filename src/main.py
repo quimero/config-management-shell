@@ -78,44 +78,50 @@ def run_script(path):
 
     return True
 
-
-def main():
-    args = parse_args()
-    print(f"VFS: {args.vfs or '(не указан)'}")
-    print(f"Скрипт: {args.script or '(не указан)'}")
-
-    if args.vfs is not None:
-        try:
-            vfs = load_vfs(args.vfs)
-        except (OSError, ValueError) as error:
-            print(f"Ошибка загрузки VFS: {error}")
-            return 1
-
-        print("VFS успешно загружена")
-    else:
+def prepare_vfs(vfs_path):
+    """Подготовить виртуальную файловую систему."""
+    if vfs_path is None:
         vfs = {
             "type": "dir",
             "owner": "root",
             "children": {}
         }
         print("Используется пустая VFS")
+    else:
+        try:
+            vfs = load_vfs(vfs_path)
+        except (OSError, ValueError) as error:
+            print(f"Ошибка загрузки VFS: {error}")
+            return None
+
+        print("VFS успешно загружена")
 
     print(f"Элементов в корне VFS: {len(vfs['children'])}")
-
-    if args.script is not None:
-        if not Path(args.script).is_file():
-            print(f"Ошибка: скрипт не найден: {args.script}")
-            return 1
-
-        result = run_script(args.script)
-
-        if result is False:
-            return 1
-
-        if result is None:
-            return 0
+    return vfs
 
 
+def handle_startup_script(script_path):
+    """Проверить и выполнить стартовый скрипт."""
+    if script_path is None:
+        return None
+
+    if not Path(script_path).is_file():
+        print(f"Ошибка: скрипт не найден: {script_path}")
+        return 1
+
+    result = run_script(script_path)
+
+    if result is False:
+        return 1
+
+    if result is None:
+        return 0
+
+    return None
+
+
+def run_repl():
+    """Запустить интерактивный режим."""
     while True:
         user_input = input(f"{VFS_NAME}:~$ ")
         command, arguments = parse_command(user_input)
@@ -128,6 +134,24 @@ def main():
         if result is None:
             break
 
+def main():
+    """Запустить эмулятор."""
+    args = parse_args()
+
+    print(f"VFS: {args.vfs or '(не указан)'}")
+    print(f"Скрипт: {args.script or '(не указан)'}")
+
+    vfs = prepare_vfs(args.vfs)
+
+    if vfs is None:
+        return 1
+
+    script_result = handle_startup_script(args.script)
+
+    if script_result is not None:
+        return script_result
+
+    run_repl()
     return 0
 
 
