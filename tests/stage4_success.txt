@@ -1,0 +1,27 @@
+# Stage 4 commands test
+clear
+date
+ls
+ls -l
+ls -h
+ls -a
+ls -la
+ls -lh
+ls -ah
+ls -lah
+ls -l -a -h
+ls docs
+ls ./docs
+ls /docs
+ls /docs/.././docs
+cd docs
+ls
+cd ..
+cd /docs
+ls
+cd ..
+cd ./docs/../docs
+ls
+cd /
+ls
+exit

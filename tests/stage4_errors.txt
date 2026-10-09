@@ -1,0 +1,6 @@
+ls
+date
+ls -lah
+ls -x
+cd docs
+exit

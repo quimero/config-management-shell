@@ -30,7 +30,7 @@ class TestVFS(unittest.TestCase):
 
         self.assertEqual(
             set(children),
-            {"readme.txt", "config.ini", "docs"}
+            {"readme.txt", "config.ini", "docs", ".hidden.txt"}
         )
         self.assertEqual(children["docs"]["type"], "dir")
         self.assertIn("info.txt", children["docs"]["children"])

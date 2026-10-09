@@ -1,5 +1,13 @@
+"""Консольный эмулятор командной оболочки."""
+
 import argparse
 from pathlib import Path
+
+from src.commands import command_cd
+from src.commands import command_ls
+from src.commands import command_clear
+from src.commands import command_date
+from src.path_utils import format_path
 from src.vfs import load_vfs
 
 
@@ -7,15 +15,23 @@ VFS_NAME = "my_vfs"
 
 
 def parse_args():
+    """Получить параметры командной строки."""
     parser = argparse.ArgumentParser(
         description="Shell emulator"
     )
-    parser.add_argument("--vfs", help="Path to VFS")
-    parser.add_argument("--script", help="Path to startup script")
+    parser.add_argument(
+        "--vfs",
+        help="Path to VFS"
+    )
+    parser.add_argument(
+        "--script",
+        help="Path to startup script"
+    )
     return parser.parse_args()
 
 
 def parse_command(user_input):
+    """Разделить ввод на команду и аргументы."""
     parts = user_input.split()
 
     if not parts:
@@ -26,22 +42,54 @@ def parse_command(user_input):
     return command, arguments
 
 
-def execute_command(command, arguments):
+def execute_cd(arguments, state):
+    """Выполнить cd с учётом режима работы."""
+    if state is not None:
+        return command_cd(
+            state["vfs"],
+            state["cwd"],
+            arguments
+        )
+
+    if len(arguments) != 1:
+        print("Ошибка: команда cd ожидает один аргумент")
+        return False
+
+    print("cd", arguments)
+    return True
+
+def execute_ls(arguments, state):
+    """Выполнить ls с учётом режима работы."""
+    if state is not None:
+        return command_ls(
+            state["vfs"],
+            state["cwd"],
+            arguments
+        )
+
+    print("ls", arguments)
+    return True
+
+def execute_command(command, arguments, state=None):
+    """Выполнить команду эмулятора."""
     if command == "ls":
-        print("ls", arguments)
-        return True
+        return execute_ls(arguments, state)
 
     if command == "cd":
-        if len(arguments) != 1:
-            print("Ошибка: команда cd ожидает один аргумент")
-            return False
+        return execute_cd(arguments, state)
 
-        print("cd", arguments)
-        return True
+    if command == "date":
+        return command_date(arguments)
+
+    if command == "clear":
+        return command_clear(arguments)
 
     if command == "exit":
         if arguments:
-            print("Ошибка: команда exit не принимает аргументы")
+            print(
+                "Ошибка: команда exit "
+                "не принимает аргументы"
+            )
             return False
 
         return None
@@ -50,7 +98,13 @@ def execute_command(command, arguments):
     return False
 
 
-def run_script(path):
+def make_prompt(state):
+    """Сформировать приглашение командной строки."""
+    path = format_path(state["cwd"])
+    return f"{VFS_NAME}:{path}$"
+
+
+def run_script(path, state):
     """Выполнить команды из стартового скрипта."""
     try:
         with open(path, encoding="utf-8") as script:
@@ -60,13 +114,20 @@ def run_script(path):
                 if not line or line.startswith("#"):
                     continue
 
-                print(f"{VFS_NAME}:~$ {line}")
+                print(f"{make_prompt(state)} {line}")
 
                 command, arguments = parse_command(line)
-                result = execute_command(command, arguments)
+                result = execute_command(
+                    command,
+                    arguments,
+                    state
+                )
 
                 if result is False:
-                    print(f"Ошибка в скрипте, строка {line_number}")
+                    print(
+                        "Ошибка в скрипте, "
+                        f"строка {line_number}"
+                    )
                     return False
 
                 if result is None:
@@ -77,6 +138,7 @@ def run_script(path):
         return False
 
     return True
+
 
 def prepare_vfs(vfs_path):
     """Подготовить виртуальную файловую систему."""
@@ -96,20 +158,24 @@ def prepare_vfs(vfs_path):
 
         print("VFS успешно загружена")
 
-    print(f"Элементов в корне VFS: {len(vfs['children'])}")
+    count = len(vfs["children"])
+    print(f"Элементов в корне VFS: {count}")
     return vfs
 
 
-def handle_startup_script(script_path):
+def handle_startup_script(script_path, state):
     """Проверить и выполнить стартовый скрипт."""
     if script_path is None:
         return None
 
     if not Path(script_path).is_file():
-        print(f"Ошибка: скрипт не найден: {script_path}")
+        print(
+            "Ошибка: скрипт не найден: "
+            f"{script_path}"
+        )
         return 1
 
-    result = run_script(script_path)
+    result = run_script(script_path, state)
 
     if result is False:
         return 1
@@ -120,19 +186,25 @@ def handle_startup_script(script_path):
     return None
 
 
-def run_repl():
+def run_repl(state):
     """Запустить интерактивный режим."""
     while True:
-        user_input = input(f"{VFS_NAME}:~$ ")
+        user_input = input(f"{make_prompt(state)} ")
+
         command, arguments = parse_command(user_input)
 
         if not command:
             continue
 
-        result = execute_command(command, arguments)
+        result = execute_command(
+            command,
+            arguments,
+            state
+        )
 
         if result is None:
             break
+
 
 def main():
     """Запустить эмулятор."""
@@ -146,12 +218,20 @@ def main():
     if vfs is None:
         return 1
 
-    script_result = handle_startup_script(args.script)
+    state = {
+        "vfs": vfs,
+        "cwd": []
+    }
+
+    script_result = handle_startup_script(
+        args.script,
+        state
+    )
 
     if script_result is not None:
         return script_result
 
-    run_repl()
+    run_repl(state)
     return 0
 
 
