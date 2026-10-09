@@ -346,7 +346,7 @@ py -m unittest discover -s tests -v
 
 - `tests/test_main.py` — базовая логика эмулятора;
 - `tests/test_vfs.py` — загрузка виртуальной файловой системы;
-- `tests/test_path.py` — обработка путей;
+- `tests/test_paths.py` — обработка путей;
 - `tests/test_cd.py` — команда `cd`;
 - `tests/test_ls.py` — команда `ls` и её ключи;
 - `tests/test_basic_commands.py` — команды `date` и `clear`.
@@ -385,7 +385,7 @@ py -m unittest discover -s tests -v
 - `src/commands.py` — реализация команд оболочки;
 - `tests/test_main.py` — базовые автоматические тесты;
 - `tests/test_vfs.py` — тесты VFS;
-- `tests/test_path.py` — тесты путей;
+- `tests/test_paths.py` — тесты путей;
 - `tests/test_cd.py` — тесты команды `cd`;
 - `tests/test_ls.py` — тесты команды `ls`;
 - `tests/test_basic_commands.py` — тесты `date` и `clear`;
