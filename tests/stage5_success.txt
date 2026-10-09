@@ -1,0 +1,16 @@
+# Stage 5 chown test
+ls -l
+chown sergey readme.txt
+ls -l
+chown admin docs
+ls -l
+chown student /docs/info.txt
+ls -l /docs
+chown user /docs/.././readme.txt
+ls -l
+cd docs
+chown teacher info.txt
+ls -l
+cd /
+ls -l
+exit

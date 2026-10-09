@@ -5,7 +5,7 @@ from src.path_utils import resolve_path
 from datetime import datetime
 
 LS_OPTIONS = {"l", "h", "a"}
-
+CHOWN_ARGUMENTS = 2
 
 def command_cd(vfs, current_path, arguments):
     """Изменить текущий каталог VFS."""
@@ -185,4 +185,32 @@ def command_clear(arguments):
         return False
 
     print("\033[2J\033[H", end="")
+    return True
+
+def command_chown(vfs, current_path, arguments):
+    """Изменить владельца объекта VFS."""
+    if len(arguments) != CHOWN_ARGUMENTS:
+        print(
+            "Ошибка: команда chown ожидает "
+            "владельца и путь"
+        )
+        return False
+
+    owner = arguments[0]
+    path = arguments[1]
+
+    try:
+        _, node = resolve_path(
+            vfs,
+            path,
+            current_path
+        )
+    except FileNotFoundError:
+        print("Ошибка: путь не найден")
+        return False
+    except NotADirectoryError:
+        print("Ошибка: часть пути не является каталогом")
+        return False
+
+    node["owner"] = owner
     return True

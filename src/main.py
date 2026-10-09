@@ -7,6 +7,7 @@ from src.commands import command_cd
 from src.commands import command_ls
 from src.commands import command_clear
 from src.commands import command_date
+from src.commands import command_chown
 from src.path_utils import format_path
 from src.vfs import load_vfs
 
@@ -83,6 +84,17 @@ def execute_command(command, arguments, state=None):
 
     if command == "clear":
         return command_clear(arguments)
+
+    if command == "chown":
+        if state is None:
+            print("chown", arguments)
+            return True
+
+        return command_chown(
+            state["vfs"],
+            state["cwd"],
+            arguments
+        )
 
     if command == "exit":
         if arguments:
